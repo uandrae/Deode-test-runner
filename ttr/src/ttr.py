@@ -366,7 +366,7 @@ class TestCases:
         basedir = os.getcwd()
         ial_hash = self.definitions["ial"]["ial_hash"]
         build_tar_path = self.definitions["ial"]["build_tar_path"]
-        bindir = self.definitions["ial"]["bindir"].replace("@USER@", os.environ["USER"])
+        _bindir = self.definitions["ial"]["bindir"].replace("@USER@", os.environ["USER"])
 
         files = glob.glob(f"{build_tar_path}/*{ial_hash}*.tar")
         for f in files:
@@ -379,7 +379,7 @@ class TestCases:
                 compiler = "gnu"
             cptag = ff.replace(ial_hash, "").replace("ial", "")
             bindir = (
-                bindir.replace("@CPTAG@", cptag)
+                _bindir.replace("@CPTAG@", cptag)
                 .replace("@IAL_HASH@", ial_hash)
                 .replace("@COMPILER@", compiler)
                 .replace("@PRECISION@", precision)
@@ -388,7 +388,8 @@ class TestCases:
             os.makedirs(bindir, exist_ok=True)
             os.chdir(bindir)
             print(f"Untar {f} into {bindir}")
-            os.system(f"tar xf {f}")  # noqa S605
+            if not self.dry:
+                os.system(f"tar xf {f}")  # noqa S605
 
         os.chdir(basedir)
         print("All binaries copied. Rerun without '-p' to launch tests")
