@@ -7,9 +7,9 @@ import os
 from pathlib import Path
 
 import tomli
-import tomlkit
 from deode.__main__ import main as tactus_main
 from deode.config_parser import ConfigPaths, GeneralConstants, ParsedConfig
+from deode.fullpos import flatten_list
 from deode.general_utils import merge_dicts
 from deode.logs import logger
 
@@ -232,24 +232,26 @@ class TestCases:
             )
             with contextlib.suppress(KeyError):
                 config = config.expand_macros(True)
-            self.modifx = config["modifs"].dict()
 
             self.cmds[case] = self.get_cmd(
                 case,
+                config["modifs"],
                 base,
-                extra=extra,
+                extra,
             )
 
     def get_cmd(
         self,
         case,
-        base=None,
-        extra=None,
+        modifs,
+        base,
+        extra,
     ):
         """Construct the final command.
 
         Arguments:
            case (str): Case to construct
+           modifs (ParsedConfig object) : Config modifications
            base (str): Base configuration
            extra (list): Additional configration files to include
 
@@ -257,55 +259,20 @@ class TestCases:
            cmd (list): List of commands
 
         """
-        if base is None:
-            base = case
+        outfile = f"{self.test_dir}/modifs_{case}.toml"
+        logger.info(" create: {}", outfile)
+        modifs.save_as(outfile)
 
         cmd = [
             "case",
             f"?{GeneralConstants.PACKAGE_DIRECTORY}/data/config_files/configurations/{base}",
-        ]
-
-        if extra is not None:
-            for x in extra:
-                cmd.append(x)  # noqa PERF402
-
-        tail = [
-            self.modif(case),
+            extra,
+            outfile,
             "-o",
             self.test_dir,
         ]
-        for x in tail:
-            cmd.append(x)  # noqa PERF402
 
-        return cmd
-
-    def modif(self, case, outfile=None):
-        """Modify.
-
-        Arguments:
-            case (x): x
-            outfile (x): x
-
-        Raises:
-            KeyError: For modif missing key
-        Returns:
-            outfile (str): Name of file written
-        """
-        if outfile is None:
-            outfile = f"{self.test_dir}/modifs_{case}.toml"
-
-        logger.info(" create: {}", outfile)
-        modifs = self.modifx
-        try:
-            x = tomlkit.dumps(modifs)
-            x = tomlkit.parse(x)
-        except KeyError as err:
-            raise KeyError("Missing substition in modif section") from err
-
-        with open(outfile, mode="w", encoding="utf8") as fh:
-            tomlkit.dump(x, fh)
-
-        return outfile
+        return flatten_list(cmd)
 
     def configure(self, cmds=None):
         """Configure tests.
