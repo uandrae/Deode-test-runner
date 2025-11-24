@@ -1,6 +1,6 @@
 # Global modifications
 [modifs.archiving.FDB.fdb.fpgrib_files]
-  active = false
+  active = true
 
 [modifs.cleaning.PostMortem.ecf_files]
   active = false
@@ -10,7 +10,7 @@
   ulfs = ["snh", "andraeul"]
 
 [modifs.fdb.grib_set]
-  expver = "0098"
+  expver = "ulfs"
 
 [modifs.general.times]
   # counter for starting days, this is to test different days
@@ -34,6 +34,9 @@
 
 [modifs.submission]
   max_ecf_tasks = 5
+
+[modifs.submission.task_exceptions.PgdFilterTownFrac.ENV]
+  ECF_TRIES = 15
 
 [modifs.suite_control]
   do_archiving = false
