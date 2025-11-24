@@ -79,8 +79,7 @@ class TestCases:
                     if "host" in x:
                         x["host"] = f"{tag}{x['host']}"
                     x["subtag"] = tag
-                    if "extra" not in x:
-                        x["extra"] = []
+                    x["extra"] = [] if "extra" not in x else list(x["extra"])
                     for k in v:
                         x["extra"].append(k)
                     subtag_selection.append(subtag)

@@ -33,7 +33,7 @@
   ecf_out = "@PERM@/deode_ecflow/jobout"
 
 [modifs.submission]
-  max_ecf_tasks = 10
+  max_ecf_tasks = 5
 
 [modifs.suite_control]
   do_archiving = false
