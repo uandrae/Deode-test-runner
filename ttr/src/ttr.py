@@ -213,6 +213,7 @@ class TestCases:
 
             extra = list(self.extra) + (item["extra"] if "extra" in item else [])
 
+            logger.info("{} -> COUNTER:{} HOST_CASE:{}", case, counter, host_case)
             # Merge and replace macros
             modifs = merge_dicts(self.modifs, self.cases[case].get("modifs", {}), True)
             config = self.config.copy(
@@ -303,6 +304,12 @@ class TestCases:
                 "config_name": os.path.basename(config_file.stem),
                 "domain_name": definitions["domain"]["name"],
             }
+            logger.info(
+                "Update config_name:{} and domain_name:{} from {}",
+                cases[case]["config_name"],
+                cases[case]["domain_name"],
+                config_file,
+            )
 
         return cases
 
@@ -354,6 +361,12 @@ def execute(t, args):
     hostnames = t.configure()
     for case, item in t.cases.items():
         if "host" in item and item["host"] in hostnames:
+            logger.info(
+                "Add {} and {} to {}",
+                hostnames[item["host"]]["config_name"],
+                hostnames[item["host"]]["domain_name"],
+                case,
+            )
             t.cases[case]["hostname"] = hostnames[item["host"]]["config_name"]
             t.cases[case]["hostdomain"] = hostnames[item["host"]]["domain_name"]
 
