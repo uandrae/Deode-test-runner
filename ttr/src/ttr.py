@@ -347,6 +347,24 @@ class TestCases:
         os.chdir(basedir)
         logger.info("All binaries copied. Rerun without '-p' to launch tests")
 
+    def update_hostnames(self, hostnames):
+        """Get the correct binaries.
+
+        Arguments:
+            hostnames (list): List of hostnames
+
+        """
+        for case, item in self.cases.items():
+            if "host" in item and item["host"] in hostnames:
+                logger.info(
+                    "Add {} and {} to {}",
+                    hostnames[item["host"]]["config_name"],
+                    hostnames[item["host"]]["domain_name"],
+                    case,
+                )
+                self.cases[case]["hostname"] = hostnames[item["host"]]["config_name"]
+                self.cases[case]["hostdomain"] = hostnames[item["host"]]["domain_name"]
+
 
 def execute(t, args):
     """Execute the stuff.
@@ -360,16 +378,7 @@ def execute(t, args):
     host_cases = t.prepare()
     t.create(host_cases)
     hostnames = t.configure()
-    for case, item in t.cases.items():
-        if "host" in item and item["host"] in hostnames:
-            logger.info(
-                "Add {} and {} to {}",
-                hostnames[item["host"]]["config_name"],
-                hostnames[item["host"]]["domain_name"],
-                case,
-            )
-            t.cases[case]["hostname"] = hostnames[item["host"]]["config_name"]
-            t.cases[case]["hostdomain"] = hostnames[item["host"]]["domain_name"]
+    t.update_hostnames(hostnames)
 
     # Create and run
     t.create()
@@ -381,9 +390,8 @@ def execute(t, args):
 
 def main(argv=None):
     """Main routine for the test runner."""
-
     if argv is None:
-       argv = sys.argv[1:]
+        argv = sys.argv[1:]
 
     parser = argparse.ArgumentParser()
     parser.add_argument(

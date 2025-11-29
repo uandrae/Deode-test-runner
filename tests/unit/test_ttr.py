@@ -7,6 +7,7 @@ from unittest import mock
 import pytest
 import tomlkit
 
+from ttr.src import ttr
 from ttr.src.ttr import TestCases
 from ttr.src.ttr import main as ttr_main
 
@@ -23,6 +24,8 @@ def minimal_raw_config():
         [general]
         [modifs]
         [cases.alaro]
+        [domain]
+          name = "foo"
         """
     )
 
@@ -53,11 +56,24 @@ def args(config_path):
     return args
 
 
+def dump_toml(self):  # noqa ARG001
+    config = tomlkit.parse(
+        """
+        [domain]
+          name = "foo"
+        """
+    )
+    with open("x_configs/foo.toml", "w") as config_file:
+        tomlkit.dump(config, config_file)
+
+
 # -------------------------------------------------------------
 # resolve_selection
 # -------------------------------------------------------------
 def test_resolve_selection_basic(monkeypatch, args):
-    monkeypatch.setattr(TestCases, "get_tactus_version", lambda: "tag_")
+    monkeypatch.setattr(
+        TestCases, "get_tactus_version", lambda self: "tag_"  # noqa ARG001
+    )
 
     tc = TestCases(args)
 
@@ -69,7 +85,9 @@ def test_resolve_selection_basic(monkeypatch, args):
 
 
 def test_resolve_selection_with_subtags(monkeypatch, args):
-    monkeypatch.setattr(TestCases, "get_tactus_version", lambda: "tag_")
+    monkeypatch.setattr(
+        TestCases, "get_tactus_version", lambda self: "tag_"  # noqa ARG005
+    )
 
     tc = TestCases(args)
     tc.cases = {"X": {"host": "Xhost"}, "Y": {}}
@@ -93,25 +111,28 @@ def test_resolve_selection_with_subtags(monkeypatch, args):
 # -------------------------------------------------------------
 # get_tactus_version
 # -------------------------------------------------------------
-def test_get_tactus_version(monkeypatch, args):
-    filedata = b"""
+@pytest.mark.parametrize("param", ["tag", "branch", "Unknown"])
+def test_get_tactus_version(monkeypatch, args, param):
+    filedata = f"""
         [tool.poetry.dependencies.deode]
-        tag = "feature/testbranch"
+        {param} = "{param}/testbranch"
     """
-    monkeypatch.setattr("builtins.open", mock.mock_open(read_data=filedata))
+    monkeypatch.setattr(
+        "builtins.open", mock.mock_open(read_data=filedata.encode("utf-8"))
+    )
 
     args.config_file = None
     tc = TestCases(args)
     version = tc.get_tactus_version()
 
-    assert version.startswith("feature_testbranch_")
+    assert version.startswith(param)
 
 
 # -------------------------------------------------------------
 # prepare
 # -------------------------------------------------------------
 def test_prepare_valid_hosts(monkeypatch, args):
-    monkeypatch.setattr(TestCases, "get_tactus_version", lambda: "x_")
+    monkeypatch.setattr(TestCases, "get_tactus_version", lambda self: "x_")  # noqa ARG001
     tc = TestCases(args)
 
     tc.selection = ["A", "B"]
@@ -124,11 +145,22 @@ def test_prepare_valid_hosts(monkeypatch, args):
     assert hosts == ["hostA", "hostB"]
 
 
+def test_prepare_invalid_hosts(monkeypatch, args):
+    monkeypatch.setattr(TestCases, "get_tactus_version", lambda self: "x_")  # noqa ARG001
+    tc = TestCases(args)
+
+    tc.selection = ["X"]
+    tc.cases = {"A": {}}
+
+    with pytest.raises(KeyError, match=r"The case.*"):
+        tc.prepare()
+
+
 # -------------------------------------------------------------
 # get_cmd
 # -------------------------------------------------------------
 def test_get_cmd(monkeypatch, args):
-    monkeypatch.setattr(TestCases, "get_tactus_version", lambda: "x_")
+    monkeypatch.setattr(TestCases, "get_tactus_version", lambda self: "x_")  # noqa ARG001
     tc = TestCases(args)
 
     with tempfile.TemporaryDirectory() as td:
@@ -148,7 +180,7 @@ def test_get_cmd(monkeypatch, args):
 # list
 # -------------------------------------------------------------
 def test_list(monkeypatch, args):
-    monkeypatch.setattr(TestCases, "get_tactus_version", lambda: "x_")
+    monkeypatch.setattr(TestCases, "get_tactus_version", lambda self: "x_")  # noqa ARG001
     args.list = True
     tc = TestCases(args)
     tc.list()
@@ -158,17 +190,18 @@ def test_list(monkeypatch, args):
 # expand_tests
 # -------------------------------------------------------------
 def test_expand_tests(monkeypatch, args):
-    monkeypatch.setattr(TestCases, "get_tactus_version", lambda: "x_")
+    monkeypatch.setattr(TestCases, "get_tactus_version", lambda self: "x_")  # noqa ARG001
     args.list = True
     tc = TestCases(args)
-    tc.expand_tests({"ial": {"bindir": "foo", "tests": {}}})
+    tc.expand_tests({"ial": {"bindir": "foo", "tests": {"gnu": {"dp": ["foo", "baar"]}}}})
 
 
 # -------------------------------------------------------------
 # create
 # -------------------------------------------------------------
 def test_create_and_configure(monkeypatch, args, tmp_test_data_dir):
-    monkeypatch.setattr(TestCases, "get_tactus_version", lambda: "x_")
+    monkeypatch.setattr(TestCases, "get_tactus_version", lambda self: "x_")  # noqa ARG001
+    monkeypatch.setattr(ttr, "tactus_main", dump_toml)
     tc = TestCases(args)
     os.chdir(tmp_test_data_dir)
     tc.create()
@@ -179,32 +212,36 @@ def test_create_and_configure(monkeypatch, args, tmp_test_data_dir):
 # -------------------------------------------------------------
 # get_binaries
 # -------------------------------------------------------------
-def test_get_binaries(monkeypatch, args):
-    monkeypatch.setattr(TestCases, "get_tactus_version", lambda: "x_")
+def test_get_binaries(monkeypatch, args, tmp_test_data_dir):
+    monkeypatch.setattr(TestCases, "get_tactus_version", lambda self: "x_")  # noqa ARG001
+    Path(f"{tmp_test_data_dir}/foo.tar").touch()
     args.dry = True
     tc = TestCases(args)
-    tc.ial = {"ial_hash": "foo", "bindir": "foo", "build_tar_path": "foo"}
+    tc.ial = {"ial_hash": "foo", "bindir": "foo", "build_tar_path": tmp_test_data_dir}
     tc.get_binaries()
 
 
 # -------------------------------------------------------------
 # main
 # -------------------------------------------------------------
-def test_main(monkeypatch):
-    monkeypatch.setattr(TestCases, "get_tactus_version", lambda: "x_")
-    ttr_main(["-d"])
+def test_main(monkeypatch, args):
+    monkeypatch.setattr(TestCases, "get_tactus_version", lambda self: "x_")  # noqa ARG001
+    monkeypatch.setattr(ttr, "tactus_main", dump_toml)
+    ttr_main(["-d", "-c", str(args.config_file)])
 
 
 # -------------------------------------------------------------
 # update_hostname
 # -------------------------------------------------------------
 def test_update_hostname(monkeypatch, args):
-    monkeypatch.setattr(TestCases, "get_tactus_version", lambda: "x_")
+    monkeypatch.setattr(TestCases, "get_tactus_version", lambda self: "x_")  # noqa ARG001
     tc = TestCases(args)
     tc.cases = {
         "foo": {
             "host": "baar",
         }
     }
-    hostnames = [{"baar": {"config_name": "x", "domain_name": "y"}}]
+    hostnames = {"baar": {"config_name": "x", "domain_name": "y"}}
     tc.update_hostnames(hostnames)
+    assert tc.cases["foo"]["hostname"] == hostnames["baar"]["config_name"]
+    assert tc.cases["foo"]["hostdomain"] == hostnames["baar"]["domain_name"]
