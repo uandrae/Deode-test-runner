@@ -4,6 +4,7 @@ import contextlib
 import copy
 import glob
 import os
+import sys
 from pathlib import Path
 
 import tomli
@@ -378,8 +379,12 @@ def execute(t, args):
         t.configure(([] if t.dry else ["--start-suite"]))
 
 
-def main():
+def main(argv=None):
     """Main routine for the test runner."""
+
+    if argv is None:
+       argv = sys.argv[1:]
+
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--list",
@@ -430,7 +435,7 @@ def main():
         required=False,
     )
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     t = TestCases(args=args)
 
@@ -444,4 +449,5 @@ def main():
 
 if __name__ == "__main__":
     logger.enable(GeneralConstants.PACKAGE_NAME)
+
     main()
