@@ -232,52 +232,28 @@ class TestCases:
             with contextlib.suppress(KeyError):
                 config = config.expand_macros(True)
 
-            # Build the command
-            self.cmds[case] = self.get_cmd(
-                case,
-                config["modifs"],
-                base,
+            # Save the modifications
+            outfile = f"{self.test_dir}/modifs_{case}.toml"
+            logger.info(" create: {}", outfile)
+            config["modifs"].save_as(outfile)
+
+            # Build the command to execute
+            cmd = [
+                "case",
+                f"?{GeneralConstants.PACKAGE_DIRECTORY}/data/config_files/configurations/{base}",
                 extra,
-            )
+                outfile,
+                "-o",
+                self.test_dir,
+            ]
+            self.cmds[case] = flatten_list(cmd)
 
-    def get_cmd(
-        self,
-        case,
-        modifs,
-        base,
-        extra,
-    ):
-        """Construct the final command.
-
-        Arguments:
-           case (str): Case to construct
-           modifs (ParsedConfig object) : Config modifications
-           base (str): Base configuration
-           extra (list): Additional configration files to include
-
-        Returns:
-           cmd (list): List of commands
-
-        """
-        outfile = f"{self.test_dir}/modifs_{case}.toml"
-        logger.info(" create: {}", outfile)
-        modifs.save_as(outfile)
-
-        cmd = [
-            "case",
-            f"?{GeneralConstants.PACKAGE_DIRECTORY}/data/config_files/configurations/{base}",
-            extra,
-            outfile,
-            "-o",
-            self.test_dir,
-        ]
-
-        return flatten_list(cmd)
-
-    def configure(self, cmds=None):
+    def configure(self, config_hosts=False, cmds=None):
         """Configure tests.
 
         Arguments:
+            config_hosts (bool, optional): Flag for updating the case settings
+                                           with host information
             cmds (list, optional): List of commands (str)
 
         Returns:
@@ -297,20 +273,23 @@ class TestCases:
             tactus_main(cmd)
 
             # Update the case settings
-            directory = Path(self.test_dir)
-            config_file = max(directory.glob("*.toml"), key=lambda f: f.stat().st_mtime)
-            with open(config_file, "rb") as f:
-                definitions = tomli.load(f)
-            cases[case] = {
-                "config_name": os.path.basename(config_file.stem),
-                "domain_name": definitions["domain"]["name"],
-            }
-            logger.info(
-                "Update config_name:{} and domain_name:{} from {}",
-                cases[case]["config_name"],
-                cases[case]["domain_name"],
-                config_file,
-            )
+            if config_hosts:
+                directory = Path(self.test_dir)
+                config_file = max(
+                    directory.glob("*.toml"), key=lambda f: f.stat().st_mtime
+                )
+                with open(config_file, "rb") as f:
+                    definitions = tomli.load(f)
+                cases[case] = {
+                    "config_name": os.path.basename(config_file.stem),
+                    "domain_name": definitions["domain"]["name"],
+                }
+                logger.debug(
+                    "Update config_name:{} and domain_name:{} from {}",
+                    cases[case]["config_name"],
+                    cases[case]["domain_name"],
+                    config_file,
+                )
 
         return cases
 
@@ -338,6 +317,7 @@ class TestCases:
                 .replace("@PRECISION@", precision)
                 .replace("/bin", "")
             )
+            self.new_bindir = bindir
             os.makedirs(bindir, exist_ok=True)
             os.chdir(bindir)
             logger.info("Untar {} into {}", f, bindir)
@@ -348,10 +328,10 @@ class TestCases:
         logger.info("All binaries copied. Rerun without '-p' to launch tests")
 
     def update_hostnames(self, hostnames):
-        """Get the correct binaries.
+        """Update host and domain name.
 
         Arguments:
-            hostnames (list): List of hostnames
+            hostnames (dict): Dict of host cases with properties
 
         """
         for case, item in self.cases.items():
@@ -377,15 +357,16 @@ def execute(t, args):
     # Check dependencies and create possible host cases
     host_cases = t.prepare()
     t.create(host_cases)
-    hostnames = t.configure()
+    hostnames = t.configure(config_hosts=True)
     t.update_hostnames(hostnames)
 
-    # Create and run
+    # Create the modification files
     t.create()
 
     # Run
     if args.run:
-        t.configure(([] if t.dry else ["--start-suite"]))
+        cmd = [] if t.dry else ["--start-suite"]
+        t.configure(cmds=cmd)
 
 
 def main(argv=None):

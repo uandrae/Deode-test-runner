@@ -1,18 +1,24 @@
 import os
-import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from unittest import mock
 
 import pytest
 import tomlkit
+from deode.logs import logger
 
 from ttr.src import ttr
 from ttr.src.ttr import TestCases
 from ttr.src.ttr import main as ttr_main
 
+MESSAGES = []
 
-@pytest.fixture()
+
+def sink(msg):
+    MESSAGES.append(msg)
+
+
+@pytest.fixture(scope="session")
 def tmp_test_data_dir(tmpdir_factory):
     return Path(tmpdir_factory.mktemp("ttr_test_rootdir"))
 
@@ -59,22 +65,25 @@ def args(config_path):
 def dump_toml(self):  # noqa ARG001
     config = tomlkit.parse(
         """
-        [domain]
-          name = "foo"
-        """
+            [domain]
+              name = "foo"
+            """
     )
     with open("x_configs/foo.toml", "w") as config_file:
         tomlkit.dump(config, config_file)
 
 
+@pytest.fixture()
+def _mockers(monkeypatch, session_mocker):
+    monkeypatch.setattr(TestCases, "get_tactus_version", lambda self: "x_")  # noqa ARG001
+    session_mocker.patch("deode.__main__.main", new=dump_toml)
+
+
 # -------------------------------------------------------------
 # resolve_selection
 # -------------------------------------------------------------
-def test_resolve_selection_basic(monkeypatch, args):
-    monkeypatch.setattr(
-        TestCases, "get_tactus_version", lambda self: "tag_"  # noqa ARG001
-    )
-
+@pytest.mark.usefixtures("_mockers")
+def test_resolve_selection_basic(args):
     tc = TestCases(args)
 
     tc.cases = {"A": {}, "B": {}}
@@ -84,11 +93,10 @@ def test_resolve_selection_basic(monkeypatch, args):
     assert set(sel) == {"A", "B"}
 
 
-def test_resolve_selection_with_subtags(monkeypatch, args):
-    monkeypatch.setattr(
-        TestCases, "get_tactus_version", lambda self: "tag_"  # noqa ARG005
-    )
-
+# -------------------------------------------------------------
+# resolve_selection with subtags
+# -------------------------------------------------------------
+def test_resolve_selection_with_subtags(args):
     tc = TestCases(args)
     tc.cases = {"X": {"host": "Xhost"}, "Y": {}}
     definitions = {
@@ -131,10 +139,8 @@ def test_get_tactus_version(monkeypatch, args, param):
 # -------------------------------------------------------------
 # prepare
 # -------------------------------------------------------------
-def test_prepare_valid_hosts(monkeypatch, args):
-    monkeypatch.setattr(TestCases, "get_tactus_version", lambda self: "x_")  # noqa ARG001
+def test_prepare_valid_hosts(args):
     tc = TestCases(args)
-
     tc.selection = ["A", "B"]
     tc.cases = {
         "A": {"host": "hostA"},
@@ -145,10 +151,11 @@ def test_prepare_valid_hosts(monkeypatch, args):
     assert hosts == ["hostA", "hostB"]
 
 
-def test_prepare_invalid_hosts(monkeypatch, args):
-    monkeypatch.setattr(TestCases, "get_tactus_version", lambda self: "x_")  # noqa ARG001
+# -------------------------------------------------------------
+# invalid hosts
+# -------------------------------------------------------------
+def test_prepare_invalid_hosts(args):
     tc = TestCases(args)
-
     tc.selection = ["X"]
     tc.cases = {"A": {}}
 
@@ -157,84 +164,49 @@ def test_prepare_invalid_hosts(monkeypatch, args):
 
 
 # -------------------------------------------------------------
-# get_cmd
+# expand_tests
 # -------------------------------------------------------------
-def test_get_cmd(monkeypatch, args):
-    monkeypatch.setattr(TestCases, "get_tactus_version", lambda self: "x_")  # noqa ARG001
+@pytest.mark.usefixtures("_mockers")
+def test_expand_tests(args):
     tc = TestCases(args)
+    tc.expand_tests({"ial": {"bindir": "foo", "tests": {"gnu": {"dp": ["foo", "baar"]}}}})
 
-    with tempfile.TemporaryDirectory() as td:
-        tc.test_dir = td
-        modifs = mock.Mock()
-        modifs.save_as = mock.Mock()
-
-        cmd = tc.get_cmd("case1", modifs, base="B", extra=["foo.toml"])
-
-        modifs.save_as.assert_called_once()
-        assert cmd[0] == "case"
-        assert "foo.toml" in cmd
-        assert any("modifs_case1.toml" in part for part in cmd)
+    assert "baar_gnu_dp" in tc.cases
 
 
 # -------------------------------------------------------------
 # list
 # -------------------------------------------------------------
-def test_list(monkeypatch, args):
-    monkeypatch.setattr(TestCases, "get_tactus_version", lambda self: "x_")  # noqa ARG001
+def test_list(args):
     args.list = True
     tc = TestCases(args)
+
+    logger_id = logger.add(sink)
     tc.list()
-
-
-# -------------------------------------------------------------
-# expand_tests
-# -------------------------------------------------------------
-def test_expand_tests(monkeypatch, args):
-    monkeypatch.setattr(TestCases, "get_tactus_version", lambda self: "x_")  # noqa ARG001
-    args.list = True
-    tc = TestCases(args)
-    tc.expand_tests({"ial": {"bindir": "foo", "tests": {"gnu": {"dp": ["foo", "baar"]}}}})
-
-
-# -------------------------------------------------------------
-# create
-# -------------------------------------------------------------
-def test_create_and_configure(monkeypatch, args, tmp_test_data_dir):
-    monkeypatch.setattr(TestCases, "get_tactus_version", lambda self: "x_")  # noqa ARG001
-    monkeypatch.setattr(ttr, "tactus_main", dump_toml)
-    tc = TestCases(args)
-    os.chdir(tmp_test_data_dir)
-    tc.create()
-    # tactus_main should be mocked here
-    tc.configure()
+    assert any("alaro" in m for m in MESSAGES)
+    logger.remove(logger_id)
 
 
 # -------------------------------------------------------------
 # get_binaries
 # -------------------------------------------------------------
-def test_get_binaries(monkeypatch, args, tmp_test_data_dir):
-    monkeypatch.setattr(TestCases, "get_tactus_version", lambda self: "x_")  # noqa ARG001
+def test_get_binaries(args, tmp_test_data_dir):
     Path(f"{tmp_test_data_dir}/foo.tar").touch()
     args.dry = True
     tc = TestCases(args)
-    tc.ial = {"ial_hash": "foo", "bindir": "foo", "build_tar_path": tmp_test_data_dir}
+    tc.ial = {
+        "ial_hash": "foo",
+        "bindir": f"{tmp_test_data_dir}/testdir/bin",
+        "build_tar_path": tmp_test_data_dir,
+    }
     tc.get_binaries()
-
-
-# -------------------------------------------------------------
-# main
-# -------------------------------------------------------------
-def test_main(monkeypatch, args):
-    monkeypatch.setattr(TestCases, "get_tactus_version", lambda self: "x_")  # noqa ARG001
-    monkeypatch.setattr(ttr, "tactus_main", dump_toml)
-    ttr_main(["-d", "-c", str(args.config_file)])
+    assert os.path.isdir(tc.ial["bindir"][:-4])
 
 
 # -------------------------------------------------------------
 # update_hostname
 # -------------------------------------------------------------
-def test_update_hostname(monkeypatch, args):
-    monkeypatch.setattr(TestCases, "get_tactus_version", lambda self: "x_")  # noqa ARG001
+def test_update_hostname(args):
     tc = TestCases(args)
     tc.cases = {
         "foo": {
@@ -245,3 +217,29 @@ def test_update_hostname(monkeypatch, args):
     tc.update_hostnames(hostnames)
     assert tc.cases["foo"]["hostname"] == hostnames["baar"]["config_name"]
     assert tc.cases["foo"]["hostdomain"] == hostnames["baar"]["domain_name"]
+
+
+# -------------------------------------------------------------
+# create and configure
+# -------------------------------------------------------------
+@pytest.mark.usefixtures("_mockers")
+def test_create_and_configure(monkeypatch, args, tmp_test_data_dir):
+    monkeypatch.setattr(ttr, "tactus_main", dump_toml)
+    tc = TestCases(args)
+    basedir = os.getcwd()
+    os.chdir(tmp_test_data_dir)
+    tc.create()
+    tc.configure(config_hosts=True)
+    os.chdir(basedir)
+
+
+# -------------------------------------------------------------
+# main
+# -------------------------------------------------------------
+@pytest.mark.usefixtures("_mockers")
+def test_main(monkeypatch, tmp_test_data_dir, args):
+    basedir = os.getcwd()
+    os.chdir(tmp_test_data_dir)
+    monkeypatch.setattr(ttr, "tactus_main", dump_toml)
+    ttr_main(["-d", "-c", str(args.config_file)])
+    os.chdir(basedir)
