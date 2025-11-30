@@ -317,7 +317,6 @@ class TestCases:
                 .replace("@PRECISION@", precision)
                 .replace("/bin", "")
             )
-            self.new_bindir = bindir
             os.makedirs(bindir, exist_ok=True)
             os.chdir(bindir)
             logger.info("Untar {} into {}", f, bindir)
