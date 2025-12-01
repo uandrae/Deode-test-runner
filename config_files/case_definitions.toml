@@ -74,6 +74,9 @@
   case_suffix = "_oper_tomorrow"
   scratch_oper = "@SCRATCH@/DE_NWP/deode/@COMPILER@"
 
+[cases.cy49t2_alaro_operational_tomorrow.modifs.extractsqlite]
+  sqlite_path = "@CASEDIR@/sqlite/@SQLITE_MODEL_NAME@/FCTABLE"
+
 [cases.cy49t2_alaro_target]
   host = "cy49t2_alaro"
 
@@ -119,6 +122,9 @@
 [cases.cy49t2_arome_large_domain_operational]
   base = "arome"
   extra = ["deode/data/config_files/modifications/operational_settings.toml"]
+
+[cases.cy49t2_arome_large_domain_operational.modifs.extractsqlite]
+  sqlite_path = "@CASEDIR@/sqlite/@SQLITE_MODEL_NAME@/FCTABLE"
 
 [cases.cy49t2_arome_large_domain_operational.modifs.archiving.prefix]
   ecfs = "ec:/@USER@/DE_NWP/deode/@COMPILER@/"
