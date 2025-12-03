@@ -35,6 +35,10 @@ Install the package and all tactus dependencies with poetry. Potentially locate 
 poetry install
 ```
 
+```
+poetry shell
+```
+
 ## Check
 
 ```
@@ -45,13 +49,13 @@ where CURRENT_HOST is one of atos_bologna or lumi
 
 ## Run
 ```
-ttr -c CURRENT_HOST.toml
+ttr -c config_files/CURRENT_HOST.toml
 ```
 
 This will create a directory according to the tag and create all config files in this directory. For each config a tactus ecflow run will be launched. To only prepare config files without running tactus do:
 
 ```
-ttr -c CURRENT_HOST.toml -d 
+ttr -c config_files/CURRENT_HOST.toml -d 
 ```
 
 ## Noteable 
