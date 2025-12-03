@@ -4,6 +4,7 @@ import contextlib
 import copy
 import glob
 import os
+import sys
 from pathlib import Path
 
 import tomli
@@ -24,7 +25,7 @@ class TestCases:
             args (argsparse objectl): Command line arguments
 
         """
-        ConfigPaths.CONFIG_DATA_SEARCHPATHS.insert(0, os.path.join(os.getcwd()))
+        ConfigPaths.CONFIG_DATA_SEARCHPATHS.insert(0, os.path.join(os.getcwd(), "config_files"))
 
         definitions = {"general": {}, "modifs": {}}
         if args.config_file is not None:
@@ -211,9 +212,8 @@ class TestCases:
             host_case = item["hostname"] if "hostname" in item else ""
             host_domain = item["hostdomain"] if "hostdomain" in item else ""
 
-            extra = list(self.extra) + (item["extra"] if "extra" in item else [])
+            extra = list(self.extra) + (list(item["extra"]) if "extra" in item else [])
 
-            logger.info("{} -> COUNTER:{} HOST_CASE:{}", case, counter, host_case)
             # Merge and replace macros
             modifs = merge_dicts(self.modifs, self.cases[case].get("modifs", {}), True)
             config = self.config.copy(
@@ -231,52 +231,28 @@ class TestCases:
             with contextlib.suppress(KeyError):
                 config = config.expand_macros(True)
 
-            # Build the command
-            self.cmds[case] = self.get_cmd(
-                case,
-                config["modifs"],
-                base,
+            # Save the modifications
+            outfile = f"{self.test_dir}/modifs_{case}.toml"
+            logger.info(" create: {}", outfile)
+            config["modifs"].save_as(outfile)
+
+            # Build the command to execute
+            cmd = [
+                "case",
+                f"?{GeneralConstants.PACKAGE_DIRECTORY}/data/config_files/configurations/{base}",
                 extra,
-            )
+                outfile,
+                "-o",
+                self.test_dir,
+            ]
+            self.cmds[case] = flatten_list(cmd)
 
-    def get_cmd(
-        self,
-        case,
-        modifs,
-        base,
-        extra,
-    ):
-        """Construct the final command.
-
-        Arguments:
-           case (str): Case to construct
-           modifs (ParsedConfig object) : Config modifications
-           base (str): Base configuration
-           extra (list): Additional configration files to include
-
-        Returns:
-           cmd (list): List of commands
-
-        """
-        outfile = f"{self.test_dir}/modifs_{case}.toml"
-        logger.info(" create: {}", outfile)
-        modifs.save_as(outfile)
-
-        cmd = [
-            "case",
-            f"?{GeneralConstants.PACKAGE_DIRECTORY}/data/config_files/configurations/{base}",
-            extra,
-            outfile,
-            "-o",
-            self.test_dir,
-        ]
-
-        return flatten_list(cmd)
-
-    def configure(self, cmds=None):
+    def configure(self, config_hosts=False, cmds=None):
         """Configure tests.
 
         Arguments:
+            config_hosts (bool, optional): Flag for updating the case settings
+                                           with host information
             cmds (list, optional): List of commands (str)
 
         Returns:
@@ -296,20 +272,23 @@ class TestCases:
             tactus_main(cmd)
 
             # Update the case settings
-            directory = Path(self.test_dir)
-            config_file = max(directory.glob("*.toml"), key=lambda f: f.stat().st_mtime)
-            with open(config_file, "rb") as f:
-                definitions = tomli.load(f)
-            cases[case] = {
-                "config_name": os.path.basename(config_file.stem),
-                "domain_name": definitions["domain"]["name"],
-            }
-            logger.info(
-                "Update config_name:{} and domain_name:{} from {}",
-                cases[case]["config_name"],
-                cases[case]["domain_name"],
-                config_file,
-            )
+            if config_hosts:
+                directory = Path(self.test_dir)
+                config_file = max(
+                    directory.glob("*.toml"), key=lambda f: f.stat().st_mtime
+                )
+                with open(config_file, "rb") as f:
+                    definitions = tomli.load(f)
+                cases[case] = {
+                    "config_name": os.path.basename(config_file.stem),
+                    "domain_name": definitions["domain"]["name"],
+                }
+                logger.debug(
+                    "Update config_name:{} and domain_name:{} from {}",
+                    cases[case]["config_name"],
+                    cases[case]["domain_name"],
+                    config_file,
+                )
 
         return cases
 
@@ -346,6 +325,24 @@ class TestCases:
         os.chdir(basedir)
         logger.info("All binaries copied. Rerun without '-p' to launch tests")
 
+    def update_hostnames(self, hostnames):
+        """Update host and domain name.
+
+        Arguments:
+            hostnames (dict): Dict of host cases with properties
+
+        """
+        for case, item in self.cases.items():
+            if "host" in item and item["host"] in hostnames:
+                logger.info(
+                    "Add {} and {} to {}",
+                    hostnames[item["host"]]["config_name"],
+                    hostnames[item["host"]]["domain_name"],
+                    case,
+                )
+                self.cases[case]["hostname"] = hostnames[item["host"]]["config_name"]
+                self.cases[case]["hostdomain"] = hostnames[item["host"]]["domain_name"]
+
 
 def execute(t, args):
     """Execute the stuff.
@@ -358,28 +355,23 @@ def execute(t, args):
     # Check dependencies and create possible host cases
     host_cases = t.prepare()
     t.create(host_cases)
-    hostnames = t.configure()
-    for case, item in t.cases.items():
-        if "host" in item and item["host"] in hostnames:
-            logger.info(
-                "Add {} and {} to {}",
-                hostnames[item["host"]]["config_name"],
-                hostnames[item["host"]]["domain_name"],
-                case,
-            )
-            t.cases[case]["hostname"] = hostnames[item["host"]]["config_name"]
-            t.cases[case]["hostdomain"] = hostnames[item["host"]]["domain_name"]
+    hostnames = t.configure(config_hosts=True)
+    t.update_hostnames(hostnames)
 
-    # Create and run
+    # Create the modification files
     t.create()
 
     # Run
     if args.run:
-        t.configure(([] if t.dry else ["--start-suite"]))
+        cmd = [] if t.dry else ["--start-suite"]
+        t.configure(cmds=cmd)
 
 
-def main():
+def main(argv=None):
     """Main routine for the test runner."""
+    if argv is None:
+        argv = sys.argv[1:]
+
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--list",
@@ -430,7 +422,7 @@ def main():
         required=False,
     )
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     t = TestCases(args=args)
 
@@ -444,4 +436,5 @@ def main():
 
 if __name__ == "__main__":
     logger.enable(GeneralConstants.PACKAGE_NAME)
+
     main()

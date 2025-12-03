@@ -9,6 +9,6 @@
   ]
 
 [include]
-  cases = "config_files/case_definitions.toml"
-  macros = "config_files/macros.toml"
-  modifs = "config_files/modifs_lumi.toml"
+  cases = "case_definitions.toml"
+  macros = "macros.toml"
+  modifs = "modifs_lumi.toml"

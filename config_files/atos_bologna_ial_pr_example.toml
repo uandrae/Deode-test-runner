@@ -14,7 +14,7 @@
   ial_hash = "33d75b06b0bf09a01246d1e14ffae42334399af6"
 
 [include]
-  cases = "config_files/case_definitions.toml"
+  cases = "case_definitions.toml"
 
 [macros.case]
   gen_macros = [{ial_hash = "ial.ial_hash"}]
