@@ -25,7 +25,9 @@ class TestCases:
             args (argsparse objectl): Command line arguments
 
         """
-        ConfigPaths.CONFIG_DATA_SEARCHPATHS.insert(0, os.path.join(os.getcwd(), "config_files"))
+        ConfigPaths.CONFIG_DATA_SEARCHPATHS.insert(
+            0, os.path.join(os.getcwd(), "config_files")
+        )
 
         definitions = {"general": {}, "modifs": {}}
         if args.config_file is not None:
@@ -133,8 +135,12 @@ class TestCases:
         for compiler, settings in defs["ial"]["tests"].items():
             for precision, confs in settings.items():
                 sp_precision = "R32" if precision == "R32" else dp_precision
-                dp_path = f"{self.bindir}".replace("@COMPILER@", compiler).replace("@PRECISION@", dp_precision)
-                sp_path = f"{self.bindir}".replace("@COMPILER@", compiler).replace("@PRECISION@", sp_precision)
+                dp_path = f"{self.bindir}".replace("@COMPILER@", compiler).replace(
+                    "@PRECISION@", dp_precision
+                )
+                sp_path = f"{self.bindir}".replace("@COMPILER@", compiler).replace(
+                    "@PRECISION@", sp_precision
+                )
 
                 for conf in confs:
                     tag = f"{conf}_{compiler}_{precision}"

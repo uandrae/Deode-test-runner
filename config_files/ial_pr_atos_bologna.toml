@@ -7,12 +7,12 @@
   ial_hash = "2951f1a1dc2df82471e857a3331df8bb35050745"
 
 [ial.tests.gnu]
-  R64 = ["cy49t2_alaro", "cy49t2_arome", "cy49t2_harmonie_arome"]
   R32 = ["cy49t2_arome", "cy49t2_harmonie_arome"]
+  R64 = ["cy49t2_alaro", "cy49t2_arome", "cy49t2_harmonie_arome"]
 
 [ial.tests.intel]
-  R64 = ["cy49t2_alaro", "cy49t2_arome", "cy49t2_harmonie_arome"]
   R32 = ["cy49t2_arome", "cy49t2_harmonie_arome"]
+  R64 = ["cy49t2_alaro", "cy49t2_arome", "cy49t2_harmonie_arome"]
 
 [macros.case]
   gen_macros = [{ial_hash = "ial.ial_hash"}]
