@@ -2,9 +2,9 @@
   selection = [
     "cy49t2_alaro",
     "cy49t2_alaro_target",
-    "cy49t2_arome_dp",
+    "cy49t2_arome_R64",
     "cy49t2_arome_target",
-    "cy49t2_harmonie_arome_dp",
+    "cy49t2_harmonie_arome_R64",
     "cy49t2_harmonie_arome_target",
   ]
 
