@@ -26,18 +26,20 @@
 
 [cases.cy48t3_alaro]
 
-# Deactivate until fixed
-#
-# [cases.cy48t3_arome]
-#
-# [cases.cy48t3_arome_target]
-#   host = "cy48t3_arome"
-#
-# [cases.cy48t3_arome_target.modifs.suite_control]
-#   mirror_host_case = true
-#
+[cases.cy48t3_arome]
+
+[cases.cy48t3_arome_target]
+  host = "cy48t3_arome"
+
+[cases.cy48t3_arome_target.modifs.suite_control]
+  mirror_host_case = true
 
 [cases.cy49t2_alaro]
+
+[cases.cy49t2_alaro_ddh]
+  base = "cy49t2_alaro"
+  case_suffix = "_ddh"
+  extra = ["deode/data/config_files/modifications/ddh.toml"]
 
 [cases.cy49t2_alaro_eps]
   base = "cy49t2_alaro"
@@ -85,14 +87,19 @@
 
 [cases.cy49t2_arome]
 
-[cases.cy49t2_arome_dp]
+[cases.cy49t2_arome_ddh]
+  base = "cy49t2_arome"
+  case_suffix = "_ddh"
+  extra = ["deode/data/config_files/modifications/ddh.toml"]
+
+[cases.cy49t2_arome_R64]
   base = "cy49t2_arome"
 
-[cases.cy49t2_arome_dp.modifs.submission]
+[cases.cy49t2_arome_R64.modifs.submission]
   precision = "R64"
 
-[cases.cy49t2_arome_dp.modifs.system]
-  case_suffix = "_dp"
+[cases.cy49t2_arome_R64.modifs.system]
+  case_suffix = "_R64"
 
 [cases.cy49t2_arome_eps]
   base = "cy49t2_arome"
@@ -141,7 +148,7 @@
   scratch_oper = "@SCRATCH@/DE_NWP/deode/@COMPILER@"
 
 [cases.cy49t2_arome_target]
-  host = "cy49t2_arome_dp"
+  host = "cy49t2_arome_R64"
 
 [cases.cy49t2_arome_target.modifs.suite_control]
   mirror_host_case = true
@@ -156,6 +163,11 @@
 
 [cases.cy49t2_harmonie_arome]
 
+[cases.cy49t2_harmonie_arome_ddh]
+  base = "cy49t2_harmonie_arome"
+  case_suffix = "_ddh"
+  extra = ["deode/data/config_files/modifications/ddh.toml"]
+
 [cases.cy49t2_harmonie_arome_airquality]
   base = "cy49t2_harmonie_arome"
   extra = ["deode/data/config_files/modifications/event_type/airquality.toml"]
@@ -163,14 +175,14 @@
 [cases.cy49t2_harmonie_arome_airquality.modifs.archiving.FDB.fdb.surfex_grib2]
   active = false
 
-[cases.cy49t2_harmonie_arome_dp]
+[cases.cy49t2_harmonie_arome_R64]
   base = "cy49t2_harmonie_arome"
 
-[cases.cy49t2_harmonie_arome_dp.modifs.submission]
+[cases.cy49t2_harmonie_arome_R64.modifs.submission]
   precision = "R64"
 
-[cases.cy49t2_harmonie_arome_dp.modifs.system]
-  case_suffix = "_dp"
+[cases.cy49t2_harmonie_arome_R64.modifs.system]
+  case_suffix = "_R64"
 
 [cases.cy49t2_harmonie_arome_eps]
   base = "cy49t2_harmonie_arome"
@@ -198,7 +210,7 @@
   start = "-P1D"
 
 [cases.cy49t2_harmonie_arome_target]
-  host = "cy49t2_harmonie_arome_dp"
+  host = "cy49t2_harmonie_arome_R64"
 
 [cases.cy49t2_harmonie_arome_target.modifs.suite_control]
   mirror_host_case = true
