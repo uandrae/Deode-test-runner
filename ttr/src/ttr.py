@@ -263,6 +263,7 @@ class TestCases:
         """
         if cmds is None:
             cmds = []
+        cases = {}
         for case, cmd in self.cmds.items():
             if "config_name" in self.cases[case]:
                 continue
@@ -284,6 +285,14 @@ class TestCases:
 
             self.cases[case]["config_name"] = os.path.basename(config_file.stem)
             self.cases[case]["domain_name"] = definitions["domain"]["name"]
+
+            if config_hosts:
+                cases[case] = {
+                    "config_name": os.path.basename(config_file.stem),
+                    "domain_name": definitions["domain"]["name"],
+                }
+
+        return cases
 
     def get_binaries(self):
         """Get the correct binaries."""
@@ -317,6 +326,25 @@ class TestCases:
 
         os.chdir(basedir)
         logger.info("All binaries copied. Rerun without '-p' to launch tests")
+
+    def update_hostnames(self, hostnames):
+        """Update host and domain name.
+
+        Arguments:
+            hostnames (dict): Dict of host cases with properties
+
+        """
+        for case, item in self.cases.items():
+            if "host" in item and item["host"] in hostnames:
+                logger.info(
+                    "Add {} and {} to {}",
+                    hostnames[item["host"]]["config_name"],
+                    hostnames[item["host"]]["domain_name"],
+                    case,
+                )
+                self.cases[case]["hostname"] = hostnames[item["host"]]["config_name"]
+                self.cases[case]["hostdomain"] = hostnames[item["host"]]["domain_name"]
+
 
     def start(self):
         """Start the run."""
@@ -370,7 +398,8 @@ def execute(t, args):
     # Check dependencies and create possible host cases
     host_cases = t.prepare()
     t.create(host_cases)
-    t.configure(config_hosts=True)
+    hostnames = t.configure(config_hosts=True)
+    t.update_hostnames(hostnames)
 
     # Create the modification files
     t.create()
