@@ -345,10 +345,9 @@ class TestCases:
                 self.cases[case]["hostname"] = hostnames[item["host"]]["config_name"]
                 self.cases[case]["hostdomain"] = hostnames[item["host"]]["domain_name"]
 
-
     def start(self):
         """Start the run."""
-        for case, cmd in self.cmds.items():
+        for case in self.cmds():
             config_name = self.cases[case]["config_name"]
             if self.mode == "task":
                 cmds = [
