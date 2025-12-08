@@ -37,6 +37,7 @@
   max_static_data_tasks = -1
 
 [modifs.system]
-  # Picks up the case name and domain from the host run
-  host_case = "@HOST_NAME@"
+  case_suffix = ""
+  host_case = "@HOST_CASE@"
   host_domain = "@HOST_DOMAIN@"
+  test_data_path = ""

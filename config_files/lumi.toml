@@ -6,6 +6,9 @@
     "cy49t2_arome_target",
     "cy49t2_harmonie_arome_R64",
     "cy49t2_harmonie_arome_target",
+    "alaro",
+    "arome",
+    "harmonie_arome",
   ]
 
 [include]
