@@ -151,6 +151,9 @@
   end = "-P1D"
   start = "-P1D"
 
+[cases.cy49t2_arome_use_offline.modifs.system]
+  case_suffix = "_use_offline"
+
 [cases.cy49t2_harmonie_arome]
 
 [cases.cy49t2_harmonie_arome_airquality]
@@ -185,6 +188,9 @@
   end = "-P1D"
   start = "-P1D"
 
+[cases.cy49t2_harmonie_arome_large_domain_use_offline.modifs.system]
+  case_suffix = "_use_offline"
+
 [cases.cy49t2_harmonie_arome_R64]
   base = "cy49t2_harmonie_arome"
 
@@ -199,17 +205,6 @@
 
 [cases.cy49t2_harmonie_arome_target.modifs.suite_control]
   mirror_host_case = true
-
-[cases.cy49t2_harmonie_arome_use_offline]
-  base = "cy49t2_harmonie_arome"
-  extra = ["deode/data/config_files/modifications/use_surfex_offline_for_prep.toml"]
-
-[cases.cy49t2_harmonie_arome_use_offline.modifs.general.times]
-  end = "-P1D"
-  start = "-P1D"
-
-[cases.cy49t2_harmonie_arome_use_offline.modifs.system]
-  case_suffix = "_use_offline"
 
 [cases.harmonie_arome]
   base = "harmonie_arome"
