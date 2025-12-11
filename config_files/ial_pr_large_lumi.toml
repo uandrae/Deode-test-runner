@@ -27,8 +27,18 @@
   end = "-P1D"
   start = "-P1D"
 
+[modifs.scheduler.ecfvars]
+  case_prefix = "@USER@_@TAG@@SUBTAG@"
+
 [modifs.submission]
   max_ecf_tasks = 10
+
+[modifs.submission.task_exceptions.PgdFilterTownFrac.ENV]
+  ECF_TRIES = 15
+
+[modifs.submission.types.serial.BATCH]
+  MEM = "#SBATCH --mem=0GB"
+  PARTITION = "#SBATCH --partition=standard"
 
 [modifs.suite_control]
   create_static_data = true
@@ -36,3 +46,4 @@
   do_creategrib_static = false
   do_extractsqlite = false
   do_mergesqlite = false
+

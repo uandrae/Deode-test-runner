@@ -172,7 +172,6 @@ class TestCases:
                     self.cases[tag] = {
                         "base": conf,
                         "modifs": {
-                            "scheduler": {"ecfvars": {"case_prefix": f"{prefix}{tag}_"}},
                             "submission": {
                                 "bindir": dp_path,
                                 "task_exceptions": {
