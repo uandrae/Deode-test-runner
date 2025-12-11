@@ -3,7 +3,7 @@
 [ial]
   active = true
   build_tar_path = "/scratch/project_465000527/github-actions"
-  ial_hash = "a7eb2d4356028de422168ca126721ec2eef930a8"
+  ial_hash = "31fce0c53135ccf2f0116b981d63c1676a189881"
   user_binary_path = "/scratch/project_465000527/@USER@/ial_binaries"
 
 [ial.tests.gnu]
@@ -42,6 +42,9 @@
 
 [modifs.submission.task_exceptions.PgdFilterTownFrac.ENV]
   ECF_TRIES = 15
+
+[modifs.submission.types.parallel.BATCH]
+  WALLTIME = "#SBATCH --time=00:30:00"
 
 [modifs.submission.types.serial.BATCH]
   MEM = "#SBATCH --mem=0GB"
