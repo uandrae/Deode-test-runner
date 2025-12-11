@@ -25,7 +25,7 @@
   os_macros = ["USER"]
 
 [modifs.general]
-  case = "@CASE_PREFIX@@DOMAIN@_@YMD_START@"
+  case = "@CASE_PREFIX@@COMPILER@_@PRECISION@_@CYCLE@_@CSC@_@DOMAIN@_@YMD_START@"
 
 [modifs.general.times]
   end = "2025-09-02T00:00:00Z"
