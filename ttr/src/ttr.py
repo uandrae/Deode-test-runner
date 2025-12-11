@@ -312,7 +312,10 @@ class TestCases:
         basedir = os.getcwd()
         ial_hash = self.ial["ial_hash"]
         build_tar_path = self.ial["build_tar_path"]
-        _bindir = self.ial["bindir"].replace("@USER@", os.environ["USER"])
+        try:
+           _bindir = self.modifs["submission"]["task_exception"]["Forecast"]["bindir"]
+        except KeyError:
+           _bindir = f"{self.ial['user_binary_path']}/{ial_hash}/@COMPILER@/@PRECISION@/bin"
 
         files = glob.glob(f"{build_tar_path}/*{ial_hash}*.tar")
         for f in files:
