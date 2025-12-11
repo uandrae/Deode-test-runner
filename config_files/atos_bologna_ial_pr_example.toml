@@ -1,23 +1,20 @@
 [general]
   selection = ["cy49t2_alaro", "cy49t2_alaro_target"]
-  tag = "33d75b0_"
-
-  # Uncomment this for intel and gnu runs
-  #subtags = [
-    #{intel_ = []},
-    #{gnu_ = ["deode/data/config_files/modifications/submission/atos_bologna_gnu.toml"]},
-  #]
 
 [ial]
-  bindir = "/scratch/@USER@/ial_binaries/@IAL_HASH@/@COMPILER@/@PRECISION@/bin"
+  active = false
   build_tar_path = "/scratch/deployde330"
-  ial_hash = "33d75b06b0bf09a01246d1e14ffae42334399af6"
+  ial_hash = "2951f1a1dc2df82471e857a3331df8bb35050745"
+  user_binary_path = "/scratch/@USER@/ial_binaries"
 
 [include]
   cases = "case_definitions.toml"
 
 [macros.case]
-  gen_macros = [{ial_hash = "ial.ial_hash"}]
+  gen_macros = [
+     {ial_hash = "ial.ial_hash"},
+     {user_binary_path = "ial.user_binary_path"}
+  ]
   group_macros = []
   os_macros = ["USER"]
 
@@ -29,17 +26,20 @@
 [modifs.cleaning.PostMortem.ecf_files]
   active = false
 
+[modifs.general]
+  case = "@CASE_PREFIX@@CYCLE@_@CSC@_@EVENT_TYPE@_@DOMAIN@_@YMD_START@@CASE_SUFFIX@"
+
 [modifs.general.times]
   # counter for starting days, this is to test different days
-  end = "-P@COUNTER@D"
-  start = "-P@COUNTER@D"
+  end = "-P1D"
+  start = "-P1D"
 
 [modifs.submission]
-  bindir = "/scratch/@USER@/ial_binaries/@IAL_HASH@/@COMPILER@/R64/bin"
+  bindir = "@USER_BINARY_PATH@/@IAL_HASH@/@COMPILER@/R64/bin"
   max_ecf_tasks = 25
 
 [modifs.submission.task_exceptions.Forecast]
-  bindir = "/scratch/@USER@/ial_binaries/@IAL_HASH@/@COMPILER@/@PRECISION@/bin"
+  bindir = "@USER_BINARY_PATH@/@IAL_HASH@/@COMPILER@/@PRECISION@/bin"
 
 [modifs.system]
   # Picks up the case name and domain from the host run
