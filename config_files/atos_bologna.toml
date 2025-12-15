@@ -2,7 +2,7 @@
 
 [general.compiler.gnu_]
   active = true
-  exclude = ["cy48t2", "cy46h"]
+  exclude = ["cy48t3", "cy46h"]
   extra = ["deode/data/config_files/modifications/submission/atos_bologna_gnu.toml"]
 
 [general.compiler.intel_]
