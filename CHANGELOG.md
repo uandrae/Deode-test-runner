@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://github.com/destination-earth-digital-twins/Deode-Prototype/tree/HEAD)
 
+## [0.2.0] - 2025-12-16
+
+Version used for testing of Deode-Workflow v0.24.0 using `reference_date=2025-12-15`
+
 ## [0.1.0] - 2025-12-11
 
 ### Added
