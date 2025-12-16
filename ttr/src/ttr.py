@@ -17,6 +17,8 @@ from deode.general_utils import merge_dicts
 from deode.host_actions import DeodeHost
 from deode.logs import logger
 
+from ttr.src.cleaning import remove_ttr_cases
+
 
 class TestCases:
     """Class to orchestrate the tests."""
@@ -67,6 +69,7 @@ class TestCases:
 
         logger.info("Using config file: {}", args.config_file)
         logger.info(" tag: {}", self.tag)
+        logger.info(" test_dir: {}", self.test_dir)
 
     def get_tag(self, definitions):
         """Get and validate tag.
@@ -450,6 +453,14 @@ def main(argv=None):
         required=False,
     )
     parser.add_argument(
+        "--remove",
+        "-r",
+        action="store_true",
+        default=False,
+        help="Remove cases from ecflow, disks and archive",
+        required=False,
+    )
+    parser.add_argument(
         "--dry",
         "-d",
         action="store_true",
@@ -490,12 +501,33 @@ def main(argv=None):
         required=False,
     )
 
+    parser.add_argument(
+        "--config-files-to-remove",
+        "-q",
+        dest="remove_search_path",
+        nargs="*",
+        help="Config files for cases to remove",
+        required=False,
+    )
+
     args = parser.parse_args(argv)
 
     t = TestCases(args=args)
 
     if args.prepare_binaries:
         t.get_binaries()
+    elif args.remove:
+        if args.remove_search_path is not None:
+            files = args.remove_search_path
+        elif t.test_dir is not None:
+            files = [
+                p
+                for p in Path(".").glob(f"{t.test_dir}/*.toml")
+                if "modifs_" not in p.name
+            ]
+        else:
+            files = []
+        remove_ttr_cases(files, dry_run=args.dry)
     elif args.list:
         t.list()
     elif args.config_file is not None:

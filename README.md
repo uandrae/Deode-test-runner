@@ -69,6 +69,23 @@ This will create a directory according to the tag and create all config files in
 ttr -c config_files/CURRENT_HOST.toml -d 
 ```
 
+## Clean
+
+After successful runs and assesment the tested cases can be cleaned from disks and ecflow with e.g.
+```
+ttr -r -q /scratch/$USER/deode/your_test_tag_*/archive/config.toml
+```
+or 
+```
+ttr -c config_files/CURRENT_HOST.toml -r 
+```
+This will scan all config files and clean according to the settings in config_files/cleaning.toml. Note that cleaning of ECFS is not yet implemented.
+
+To just test the cleaning add `-d` i.e. a dry run
+```
+ttr -r -q /scratch/$USER/deode/your_test_tag_*/archive/config.toml -d
+```
+
 ## About the config files
 
 The config file has a for main sections: general, case, modifs and ial. Here we explain the usage of each
