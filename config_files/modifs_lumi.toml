@@ -8,11 +8,8 @@
 [modifs.cleaning.PostMortem.ecf_files]
   active = false
 
-[modifs.fdb.expver_restrictions]
-  ulfs = ["snh", "andraeul"]
-
-[modifs.fdb.grib_set]
-  expver = "ulfs"
+[modifs.general]
+  case = "@CASE_PREFIX@@CYCLE@_@CSC@_@EVENT_TYPE@_@DOMAIN@_@YMD_START@@CASE_SUFFIX@"
 
 [modifs.general.times]
   # counter for starting days, this is to test different days

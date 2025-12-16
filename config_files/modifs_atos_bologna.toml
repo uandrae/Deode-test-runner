@@ -7,10 +7,6 @@
 
 [modifs.fdb.expver_restrictions]
   test = ["snh02", "lrb_465000527_efdev"]
-  ulfs = ["snh", "andraeul"]
-
-[modifs.fdb.grib_set]
-  expver = "ulfs"
 
 [modifs.general]
   case = "@CASE_PREFIX@@CYCLE@_@CSC@_@EVENT_TYPE@_@DOMAIN@_@YMD_START@@CASE_SUFFIX@"
