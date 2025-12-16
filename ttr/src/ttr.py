@@ -5,11 +5,13 @@ import copy
 import glob
 import os
 import sys
+from datetime import date
 from pathlib import Path
 
 import tomli
 from deode.__main__ import main as tactus_main
 from deode.config_parser import ConfigPaths, GeneralConstants, ParsedConfig
+from deode.datetime_utils import as_datetime
 from deode.fullpos import flatten_list
 from deode.general_utils import merge_dicts
 from deode.host_actions import DeodeHost
@@ -42,6 +44,12 @@ class TestCases:
 
         self.verbose = args.verbose
         self.cases = definitions.get("cases", {})
+        try:
+            self.reference_date = as_datetime(
+                f"{definitions['general']['reference_date']}T00:00:00Z"
+            ).date()
+        except KeyError:
+            self.reference_date = date.today()
         self.cmds = {}
         self.mode = definitions["general"].get("mode", "suite")
         self.extra = definitions["general"].get("extra", [])
@@ -210,8 +218,9 @@ class TestCases:
         logger.info("Create {}config files in {}", label, self.test_dir)
 
         assigned = {}
+        days_difference = (date.today() - self.reference_date).days
         for i, (case, item) in enumerate(self.cases.items()):
-            assigned[case] = i + 1
+            assigned[case] = i + 1 + days_difference
 
             if case not in cases or "config_name" in self.cases[case]:
                 continue

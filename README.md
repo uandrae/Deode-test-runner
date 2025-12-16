@@ -87,6 +87,19 @@ To test different compilers we can add the compiler section. Here we define the 
 
 ```
 
+To rerun the tests with the same dates as those used when testing prior to tagging set the reference date as 
+```
+[general]
+   reference_date  = "YYYY-MM-DD"
+```
+on atos and 
+```
+[modifs.general.times]
+   end = "YYYY-MM-DDT00:00:00Z"
+   start = "YYYY-MM-DDT00:00:00Z"
+```
+on in `config_files/modifs_lumi.toml` on lumi. Note though that fdb on lumi only stores data for the most recent weeks.
+
 ### Case
 
 Here we define the config settings per case.
