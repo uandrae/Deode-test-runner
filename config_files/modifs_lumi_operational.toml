@@ -1,13 +1,11 @@
-# Global modifications
 [modifs.boundaries]
   max_interpolation_tasks = -1
 
 [modifs.fdb.expver_restrictions]
   9999 = ["lrb_465000527_efdev"]
-  ulfs = ["andraeul"]
 
 [modifs.fdb.grib_set]
-  expver = "ulfs"
+  expver = "9999"
 
 [modifs.general]
   case = "@CASE_PREFIX@@CYCLE@_@CSC@_@EVENT_TYPE@_@DOMAIN@_@YMD_START@@CASE_SUFFIX@"
@@ -19,6 +17,7 @@
 
 [modifs.scheduler.ecfvars]
   case_prefix = "@USER@_@TAG@@SUBTAG@"
+  ecf_host = "217.71.194.208"
 
 [modifs.submission]
   max_ecf_tasks = 25
@@ -28,11 +27,9 @@
 
 [modifs.submission.types.serial.BATCH]
   MEM = "#SBATCH --mem=0GB"
-  PARTITION = "#SBATCH --partition=standard"
 
 [modifs.suite_control]
   max_static_data_tasks = -1
-  mirror_globalDT = false
 
 [modifs.system]
   case_suffix = ""

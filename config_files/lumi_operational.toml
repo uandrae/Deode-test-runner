@@ -4,6 +4,7 @@
     "cy49t2_harmonie_arome_operational",
     "cy49t2_arome_large_domain_operational",
   ]
+  extra = ["deode/data/config_files/modifications/operational_settings_lumi.toml"]
 
 [general.compiler.gnu_]
   active = true
