@@ -86,6 +86,10 @@ To just test the cleaning add `-d` i.e. a dry run
 ttr -r -q /scratch/$USER/deode/your_test_tag_*/archive/config.toml -d
 ```
 
+## Operational like testing
+
+Operational like testing is done with the config files [lumi|atos_bologna]_operational.toml. To test the full chain these tests should be done using the development user accounts on atos and lumi respectively. 
+
 ## About the config files
 
 The config file has a for main sections: general, case, modifs and ial. Here we explain the usage of each

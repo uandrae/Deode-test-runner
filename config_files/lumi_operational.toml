@@ -1,13 +1,9 @@
 [general]
-  tag = "like_oper_v0_24_0_"
   selection = [
-    "cy49t2_harmonie_arome_operational",
     "cy49t2_arome_large_domain_operational",
+    "cy49t2_harmonie_arome_operational",
   ]
   extra = ["deode/data/config_files/modifications/operational_settings_lumi.toml"]
-
-[general.compiler.gnu_]
-  active = true
 
 [include]
   cases = "case_definitions.toml"

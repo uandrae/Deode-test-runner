@@ -23,4 +23,3 @@
   case_suffix = ""
   host_case = "@HOST_CASE@"
   host_domain = "@HOST_DOMAIN@"
-  test_data_path = "/perm/snh/ttr/data"
